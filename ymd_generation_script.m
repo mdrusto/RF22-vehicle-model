@@ -1,8 +1,8 @@
- model_name = 'Bicycle_model_constrained';
+ model_name = 'vehicle_model';
 
 % Create delta and beta arrays
-delta_vals = -3:1:3;
-beta_vals = -3:1:3;
+delta_vals = -3:0.2:3;
+beta_vals = -3:0.2:3;
 
 % Number of values in each
 n_delta = length(delta_vals);
@@ -29,15 +29,15 @@ for delta_index = 1:n_delta
         disp(strcat('Simulation delta=', num2str(delta), ', beta=', num2str(beta)))
         
         % Change the delta and beta inputs in the model
-        inputs = inputs.setBlockParameter(strcat(model_name, '/Steering angle, deg'), 'Value', num2str(delta));
-        inputs = inputs.setBlockParameter(strcat(model_name, '/Chassis slip angle, deg'), 'Value', num2str(beta));
+        inputs = inputs.setBlockParameter(strcat(model_name, '/Steering wheel angle (deg)'), 'Value', num2str(delta));
+        inputs = inputs.setBlockParameter(strcat(model_name, '/Chassis slip angle (deg)'), 'Value', num2str(beta));
         
         % Run the simulation
         outputs = sim(inputs);
         
         % Record the outputs
-        accel = outputs.logsout{6}.Values.Data(1)/9.81;
-        yaw_moment = outputs.logsout{7}.Values.Data(1);
+        accel = outputs.logsout{1}.Values.Data(1)/9.81;
+        yaw_moment = outputs.logsout{2}.Values.Data(1);
         accel_vals(delta_index, beta_index) = accel;
         yaw_moment_vals(delta_index, beta_index) = yaw_moment;
         

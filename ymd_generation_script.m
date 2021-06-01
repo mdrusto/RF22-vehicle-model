@@ -1,8 +1,8 @@
  model_name = 'vehicle_model';
 
 % Create delta and beta arrays
-delta_vals = -3:0.2:3;
-beta_vals = -3:0.2:3;
+delta_vals = -3:0.5:3;
+beta_vals = -3:0.5:3;
 
 % Number of values in each
 n_delta = length(delta_vals);

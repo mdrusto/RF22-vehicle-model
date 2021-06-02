@@ -1,8 +1,8 @@
  model_name = 'vehicle_model';
 
 % Create delta and beta arrays
-delta_vals = -3:0.5:3;
-beta_vals = -3:0.5:3;
+delta_vals = -5:0.5:5;
+beta_vals = -5:0.5:5;
 
 % Number of values in each
 n_delta = length(delta_vals);
@@ -36,8 +36,8 @@ for delta_index = 1:n_delta
         outputs = sim(inputs);
         
         % Record the outputs
-        accel = outputs.logsout{1}.Values.Data(1)/9.81;
-        yaw_moment = outputs.logsout{2}.Values.Data(1);
+        accel = outputs.logsout{1}.Values.Data(end)/9.81;
+        yaw_moment = outputs.logsout{2}.Values.Data(end);
         accel_vals(delta_index, beta_index) = accel;
         yaw_moment_vals(delta_index, beta_index) = yaw_moment;
         

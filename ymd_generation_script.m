@@ -1,8 +1,8 @@
  model_name = 'vehicle_model';
 
 % Create delta and beta arrays
-delta_vals = -5:0.5:5;
-beta_vals = -5:0.5:5;
+delta_vals = -4:0.5:4;
+beta_vals = -4:0.5:4;
 
 % Number of values in each
 n_delta = length(delta_vals);
@@ -43,31 +43,43 @@ for delta_index = 1:n_delta
         
         % Plot a constant-delta line
         if beta_index > 1
-            old_accel = accel_vals(delta_index, beta_index - 1);
+            %old_accel = accel_vals(delta_index, beta_index - 1);
             old_yaw_moment = yaw_moment_vals(delta_index, beta_index - 1);
-            plot([old_accel accel], [old_yaw_moment yaw_moment], 'red')
-            
+            %plot([old_accel accel], [old_yaw_moment yaw_moment], 'red')
+            %
             if delta == 0 && beta == 0
                 stability = yaw_moment - old_yaw_moment;
             end
         end
-        scatter(accel, yaw_moment, 5)
+        scatter(accel, yaw_moment, 5, 'k')
     end
     
     if delta_index > 1
         for beta_index = 1:n_beta
             % Plot the constant-beta lines
-            old_accel = accel_vals(delta_index - 1, beta_index);
+            %old_accel = accel_vals(delta_index - 1, beta_index);
             old_yaw_moment = yaw_moment_vals(delta_index - 1, beta_index);
             new_accel = accel_vals(delta_index, beta_index);
             new_yaw_moment = yaw_moment_vals(delta_index, beta_index);
-            plot([old_accel new_accel], [old_yaw_moment new_yaw_moment], 'blue')
+            %plot([old_accel new_accel], [old_yaw_moment new_yaw_moment], 'blue')
             
             if delta_vals(delta_index) == 0 && beta_vals(beta_index) == 0
                 control = new_yaw_moment - old_yaw_moment;
             end
         end
     end
+end
+
+for delta_index = 1:n_delta
+    accel_xx = linspace(accel_vals(delta_index, 1), accel_vals(delta_index, end), 100);
+    yaw_moment_yy = spline(accel_vals(delta_index, :), yaw_moment_vals(delta_index, :), accel_xx);
+    plot(accel_xx, yaw_moment_yy, 'red');
+end
+
+for beta_index = 1:n_beta
+    accel_xx = linspace(accel_vals(1, beta_index), accel_vals(end, beta_index), 100);
+    yaw_moment_yy = spline(accel_vals(:, beta_index), yaw_moment_vals(:, beta_index), accel_xx);
+    plot(accel_xx, yaw_moment_yy, 'blue');
 end
 
 set_param(model_name, 'FastRestart', 'off');

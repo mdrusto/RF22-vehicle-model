@@ -1,5 +1,8 @@
- model_name = 'vehicle_model';
+model_name = 'vehicle_model';
 
+% Set to false to connect points with straight lines
+USE_SPLINES = false;
+ 
 % Create delta and beta arrays
 delta_vals = -5:0.5:5;
 beta_vals = -5:0.5:5;
@@ -70,16 +73,24 @@ for delta_index = 1:n_delta
     end
 end
 
-for delta_index = 1:n_delta
-    accel_xx = linspace(accel_vals(delta_index, 1), accel_vals(delta_index, end), 1000);
-    yaw_moment_yy = spline(accel_vals(delta_index, :), yaw_moment_vals(delta_index, :), accel_xx);
-    plot(accel_xx, yaw_moment_yy, 'red');
-end
-
-for beta_index = 1:n_beta
-    accel_xx = linspace(accel_vals(1, beta_index), accel_vals(end, beta_index), 1000);
-    yaw_moment_yy = spline(accel_vals(:, beta_index), yaw_moment_vals(:, beta_index), accel_xx);
-    plot(accel_xx, yaw_moment_yy, 'blue');
+if USE_SPLINES
+    for delta_index = 1:n_delta
+        accel_xx = linspace(accel_vals(delta_index, 1), accel_vals(delta_index, end), 1000);
+        yaw_moment_yy = spline(accel_vals(delta_index, :), yaw_moment_vals(delta_index, :), accel_xx);
+        plot(accel_xx, yaw_moment_yy, 'red');
+    end
+    for beta_index = 1:n_beta
+        accel_xx = linspace(accel_vals(1, beta_index), accel_vals(end, beta_index), 1000);
+        yaw_moment_yy = spline(accel_vals(:, beta_index), yaw_moment_vals(:, beta_index), accel_xx);
+        plot(accel_xx, yaw_moment_yy, 'blue');
+    end
+else
+    for delta_index = 1:n_delta
+        plot(accel_vals(delta_index, :), yaw_moment_vals(delta_index, :), 'red');
+    end
+    for beta_index = 1:n_beta
+        plot(accel_vals(:, beta_index), yaw_moment_vals(:, beta_index), 'blue');
+    end
 end
 
 set_param(model_name, 'FastRestart', 'off');

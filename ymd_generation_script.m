@@ -2,10 +2,15 @@ model_name = 'vehicle_model';
 
 % Set to false to connect points with straight lines
 USE_SPLINES = false;
+
+limit = 5;
+change = 0.5;
  
 % Create delta and beta arrays
-delta_vals = -5:0.5:5;
-beta_vals = -5:0.5:5;
+% delta_vals = 1:0.1:5;
+% beta_vals = -8:0.1:-3;
+delta_vals = -limit:change:limit;
+beta_vals = -limit:change:limit;
 
 % Number of values in each
 n_delta = length(delta_vals);
@@ -13,7 +18,7 @@ n_beta = length(beta_vals);
 
 inputs = Simulink.SimulationInput(model_name);
 
-set_param(model_name, 'FastRestart', 'on');
+%set_param(model_name, 'FastRestart', 'on');
 
 figure
 hold on
@@ -32,7 +37,7 @@ for delta_index = 1:n_delta
         disp(strcat('Simulation delta=', num2str(delta), ', beta=', num2str(beta)))
         
         % Change the delta and beta inputs in the model
-        inputs = inputs.setBlockParameter(strcat(model_name, '/Steering wheel angle (deg)'), 'Value', num2str(delta));
+        inputs = inputs.setBlockParameter(strcat(model_name, '/Steering angle (deg)'), 'Value', num2str(delta));
         inputs = inputs.setBlockParameter(strcat(model_name, '/Chassis slip angle (deg)'), 'Value', num2str(beta));
         
         % Run the simulation
@@ -43,6 +48,10 @@ for delta_index = 1:n_delta
         yaw_moment = outputs.logsout{2}.Values.Data(end);
         accel_vals(delta_index, beta_index) = accel;
         yaw_moment_vals(delta_index, beta_index) = yaw_moment;
+        
+%         if abs(accel - 1.53201) < 0.00001 && abs(yaw_moment - -1476.49) < 0.1
+%             disp(['Beta: ' num2str(beta) ', delta: ' num2str(delta)])
+%         end
         
         % Plot a constant-delta line
         if beta_index > 1
@@ -93,7 +102,7 @@ else
     end
 end
 
-set_param(model_name, 'FastRestart', 'off');
+%set_param(model_name, 'FastRestart', 'off');
 
 % Plot x and y axes
 line([0 0], ylim)

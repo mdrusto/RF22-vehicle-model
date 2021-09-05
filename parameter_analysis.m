@@ -1,8 +1,10 @@
 
 param = 'Weight_dist_front';
-vals = 0.41:0.01:0.59;
+vals = 0.4:0.01:0.6;
 titlestring = 'weight distribution';
-x_label = 'Front weight distribution';
+x_label = 'Weight distribution front';
+
+is_block = false;
 
 n_vals = length(vals);
 control = zeros(n_vals, 1);
@@ -22,13 +24,17 @@ delta_block = '/Steering angle (deg)';
 beta_block = '/Chassis slip angle (deg)';
 
 % Remember the original value of the parameter
-original_val = getVariable(model_workspace, param);
+if is_block
+    %original_val = 
+else
+    original_val = getVariable(model_workspace, param);
+end
 
 delta_block_path = strcat(model_name, delta_block);
 beta_block_path = strcat(model_name, beta_block);
 
 opt_options = optimset('fmincon');
-opt_options = optimset(opt_options, 'MaxIter', 200);
+opt_options = optimset(opt_options, 'MaxIter', 400);
 opt_options = optimset(opt_options, 'TolFun', 1e-3);
 opt_options = optimset(opt_options, 'TolX', 1e-3); % This line and above line: change tol from 1e-4 to 1e-3 (less accurate but faster)
 opt_options = optimset(opt_options, 'Display', 'off');
@@ -36,8 +42,12 @@ opt_options = optimset(opt_options, 'Display', 'off');
 for i = 1:length(vals)
     disp(['Starting simulation #' num2str(i) '/' num2str(length(vals))]);
     % Change the parameter of interest
-    %inputs = inputs.setBlockParameter([model_name '/' param], 'Value', num2str(vals(i)));
-    model_workspace.assignin(param, vals(i));
+    
+    if is_block
+        inputs = inputs.setBlockParameter([model_name '/' param], 'Value', num2str(vals(i)));
+    else
+        model_workspace.assignin(param, vals(i));
+    end
     
     % Values at origin: DELTA = 0, BETA = 0
     [~, original_yaw_moment] = simulate(inputs, delta_block_path, beta_block_path, 0, 0);
@@ -98,7 +108,11 @@ xlim([vals(1) vals(end)])
 %ylim([0 inf])
 
 % Reset the model workspace variable
-assignin(model_workspace, param, original_val);
+if is_block
+    
+else
+    assignin(model_workspace, param, original_val);
+end
 set_param(model_name, 'FastRestart', 'off');
 set_param(model_name, 'SimulationMode', 'normal');
 
@@ -118,7 +132,7 @@ function [acc, ym] = simulate(inputs, delta_block_path, beta_block_path, delta, 
     acc = outputs.logsout{1}.Values.Data(end);
     ym = outputs.logsout{2}.Values.Data(end);
     
-    if (outputs.tout(end) < 0.1)
+    if (outputs.tout(end) < 0.01)
         error(['Simulation ended prematurely at t=' num2str(outputs.tout(end))])
     end
 

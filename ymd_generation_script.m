@@ -3,7 +3,7 @@ model_name = 'vehicle_model';
 % Set to false to connect points with straight lines
 USE_SPLINES = false;
 
-limit = 5;
+limit = 4;
 change = 0.5;
  
 % Create delta and beta arrays
@@ -18,7 +18,8 @@ n_beta = length(beta_vals);
 
 inputs = Simulink.SimulationInput(model_name);
 
-%set_param(model_name, 'FastRestart', 'on');
+set_param(model_name, 'FastRestart', 'on');
+set_param(model_name, 'SimulationMode', 'accelerator');
 
 figure
 hold on
@@ -102,7 +103,7 @@ else
     end
 end
 
-%set_param(model_name, 'FastRestart', 'off');
+set_param(model_name, 'FastRestart', 'off');
 
 % Plot x and y axes
 line([0 0], ylim)

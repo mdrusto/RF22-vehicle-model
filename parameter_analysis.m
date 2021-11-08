@@ -1,10 +1,10 @@
 
-param = 'Weight_dist_front';
-vals = 0.4:0.01:0.6;
-titlestring = 'weight distribution';
-x_label = 'Weight distribution front';
+param = 'Total vehicle speed, V';
+vals = 8:0.2:20;
+titlestring = 'speed';
+x_label = 'Vehicle speed (m/s)';
 
-is_block = false;
+is_block = true;
 
 n_vals = length(vals);
 control = zeros(n_vals, 1);
@@ -25,7 +25,7 @@ beta_block = '/Chassis slip angle (deg)';
 
 % Remember the original value of the parameter
 if is_block
-    %original_val = 
+    original_val = get_param([model_name '/' param], 'Value');
 else
     original_val = getVariable(model_workspace, param);
 end
@@ -33,11 +33,11 @@ end
 delta_block_path = strcat(model_name, delta_block);
 beta_block_path = strcat(model_name, beta_block);
 
-opt_options = optimset('fmincon');
-opt_options = optimset(opt_options, 'MaxIter', 400);
-opt_options = optimset(opt_options, 'TolFun', 1e-3);
-opt_options = optimset(opt_options, 'TolX', 1e-3); % This line and above line: change tol from 1e-4 to 1e-3 (less accurate but faster)
-opt_options = optimset(opt_options, 'Display', 'off');
+opt_options = optimset('fminsearch');
+%opt_options = optimset(opt_options, 'MaxIter', 400);
+%opt_options = optimset(opt_options, 'TolFun', 1e-3);
+%opt_options = optimset(opt_options, 'TolX', 1e-3); % This line and above line: change tol from 1e-4 to 1e-3 (less accurate but faster)
+%opt_options = optimset(opt_options, 'Display', 'off');
 
 for i = 1:length(vals)
     disp(['Starting simulation #' num2str(i) '/' num2str(length(vals))]);
@@ -58,12 +58,13 @@ for i = 1:length(vals)
     % For balance: DELTA = 0, BETA = 0.01
     [~, stability_yaw_moment] = simulate(inputs, delta_block_path, beta_block_path, 0, 0.01);
 
-    sim_opt = @(db)acc_simulate(inputs, delta_block_path, beta_block_path, db(1), db(2));
+    sim_opt = @(db)-acc_simulate(inputs, delta_block_path, beta_block_path, db(1), db(2));
     
     % For balance and grip, optimize simulation function to find delta and beta that produce max grip
-    db = fmincon(sim_opt, [0, 6], [], [], [], [], [-7, -7], [7, 7], [], opt_options);
-    opt_delta = -db(1);
-    opt_beta = -db(2);
+    %db = fmincon(sim_opt, [0, 6], [], [], [], [], [0, 0], [7, 7], [], opt_options);
+    opt_in = fminsearch(sim_opt, [10, 3], opt_options);
+    opt_delta = opt_in(1);
+    opt_beta = opt_in(2);
     
     % Get the grip and balance that correspond to this delta and beta
     [opt_grip, opt_balance] = simulate(inputs, delta_block_path, beta_block_path, opt_delta, opt_beta);
@@ -109,7 +110,7 @@ xlim([vals(1) vals(end)])
 
 % Reset the model workspace variable
 if is_block
-    
+     inputs = inputs.setBlockParameter([model_name '/' param], 'Value', original_val);
 else
     assignin(model_workspace, param, original_val);
 end

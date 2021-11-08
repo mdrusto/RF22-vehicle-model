@@ -3,12 +3,13 @@ model_name = 'vehicle_model';
 % Set to false to connect points with straight lines
 USE_SPLINES = false;
 
-limit = 4;
+limit = 5;
 change = 0.5;
- 
+
 % Create delta and beta arrays
 % delta_vals = 1:0.1:5;
 % beta_vals = -8:0.1:-3;
+%delta_vals = -25:1:25;
 delta_vals = -limit:change:limit;
 beta_vals = -limit:change:limit;
 

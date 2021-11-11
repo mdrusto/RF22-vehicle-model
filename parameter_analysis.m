@@ -1,10 +1,11 @@
+% To set multiple params at once, do it like this: params = {'Track_width_rear', 'Track_width_front'};
+params = {'Track_width_rear'};
+n_params = length(params);
+vals = 1.2:0.01:1.4;
+titlestring = 'rear track width, front kept at 1.2 m';
+x_label = 'Rear track width (m)';
 
-param = 'Total vehicle speed, V';
-vals = 8:0.2:20;
-titlestring = 'speed';
-x_label = 'Vehicle speed (m/s)';
-
-is_block = true;
+is_block = false;
 
 n_vals = length(vals);
 control = zeros(n_vals, 1);
@@ -24,10 +25,15 @@ delta_block = '/Steering angle (deg)';
 beta_block = '/Chassis slip angle (deg)';
 
 % Remember the original value of the parameter
+original_vals = zeros(1, n_params);
 if is_block
-    original_val = get_param([model_name '/' param], 'Value');
+    for i = 1:n_params
+        original_vals(i) = get_param([model_name '/' params{i}], 'Value');
+    end
 else
-    original_val = getVariable(model_workspace, param);
+    for i = 1:n_params
+        original_vals(i) = getVariable(model_workspace, params{i});
+    end
 end
 
 delta_block_path = strcat(model_name, delta_block);
@@ -41,12 +47,16 @@ opt_options = optimset('fminsearch');
 
 for i = 1:length(vals)
     disp(['Starting simulation #' num2str(i) '/' num2str(length(vals))]);
+
     % Change the parameter of interest
-    
     if is_block
-        inputs = inputs.setBlockParameter([model_name '/' param], 'Value', num2str(vals(i)));
+        for j = 1:n_params
+            inputs = inputs.setBlockParameter([model_name '/' params{j}], 'Value', num2str(vals(i)));
+        end
     else
-        model_workspace.assignin(param, vals(i));
+        for j = 1:n_params
+            model_workspace.assignin(params{j}, vals(i));
+        end
     end
     
     % Values at origin: DELTA = 0, BETA = 0
@@ -110,9 +120,13 @@ xlim([vals(1) vals(end)])
 
 % Reset the model workspace variable
 if is_block
-     inputs = inputs.setBlockParameter([model_name '/' param], 'Value', original_val);
+    for i = 1:n_params
+        inputs = inputs.setBlockParameter([model_name '/' params{i}], 'Value', original_vals(i));
+    end
 else
-    assignin(model_workspace, param, original_val);
+    for i = 1:n_params
+        assignin(model_workspace, params{i}, original_vals(i));
+    end
 end
 set_param(model_name, 'FastRestart', 'off');
 set_param(model_name, 'SimulationMode', 'normal');
@@ -134,6 +148,9 @@ function [acc, ym] = simulate(inputs, delta_block_path, beta_block_path, delta, 
     ym = outputs.logsout{2}.Values.Data(end);
     
     if (outputs.tout(end) < 0.01)
+        disp(outputs.tout)
+        disp(delta)
+        disp(beta)
         error(['Simulation ended prematurely at t=' num2str(outputs.tout(end))])
     end
 

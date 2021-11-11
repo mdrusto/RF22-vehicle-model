@@ -1,7 +1,10 @@
+parameter_analysis_fcn
+
+function parameter_analysis_fcn
 % To set multiple params at once, do it like this: params = {'Track_width_rear', 'Track_width_front'};
 params = {'Track_width_rear'};
 n_params = length(params);
-vals = 1.2:0.01:1.4;
+vals = 1.2:0.2:1.4;
 titlestring = 'rear track width, front kept at 1.2 m';
 x_label = 'Rear track width (m)';
 
@@ -131,6 +134,10 @@ end
 set_param(model_name, 'FastRestart', 'off');
 set_param(model_name, 'SimulationMode', 'normal');
 
+% Clean up the mess we've made
+clear parameter_analysis
+
+end
 
 function [acc, ym] = simulate(inputs, delta_block_path, beta_block_path, delta, beta)
 

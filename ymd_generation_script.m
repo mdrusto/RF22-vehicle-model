@@ -1,7 +1,7 @@
 model_name = 'vehicle_model';
 
 % Set to false to connect points with straight lines
-USE_SPLINES = false;
+USE_SPLINES = true;
 
 limit = 5;
 change = 0.5;
@@ -51,49 +51,29 @@ for delta_index = 1:n_delta
         accel_vals(delta_index, beta_index) = accel;
         yaw_moment_vals(delta_index, beta_index) = yaw_moment;
         
-%         if abs(accel - 1.53201) < 0.00001 && abs(yaw_moment - -1476.49) < 0.1
-%             disp(['Beta: ' num2str(beta) ', delta: ' num2str(delta)])
-%         end
-        
-        % Plot a constant-delta line
-        if beta_index > 1
-            %old_accel = accel_vals(delta_index, beta_index - 1);
-            old_yaw_moment = yaw_moment_vals(delta_index, beta_index - 1);
-            %plot([old_accel accel], [old_yaw_moment yaw_moment], 'red')
-            %
-            if delta == 0 && beta == 0
-                stability = yaw_moment - old_yaw_moment;
-            end
+        if delta == 0 && beta == 0
+            stability = yaw_moment - old_yaw_moment;
         end
+        
         scatter(accel, yaw_moment, 5, 'k')
     end
     
-    if delta_index > 1
-        for beta_index = 1:n_beta
-            % Plot the constant-beta lines
-            %old_accel = accel_vals(delta_index - 1, beta_index);
-            old_yaw_moment = yaw_moment_vals(delta_index - 1, beta_index);
-            new_accel = accel_vals(delta_index, beta_index);
-            new_yaw_moment = yaw_moment_vals(delta_index, beta_index);
-            %plot([old_accel new_accel], [old_yaw_moment new_yaw_moment], 'blue')
-            
-            if delta_vals(delta_index) == 0 && beta_vals(beta_index) == 0
-                control = new_yaw_moment - old_yaw_moment;
-            end
+    for beta_index = 1:n_beta
+        if delta_vals(delta_index) == 0 && beta_vals(beta_index) == 0
+            control = new_yaw_moment - old_yaw_moment;
         end
     end
+
 end
 
 if USE_SPLINES
+    % Draw the constant-beta splines (red)
     for delta_index = 1:n_delta
-        accel_xx = linspace(accel_vals(delta_index, 1), accel_vals(delta_index, end), 1000);
-        yaw_moment_yy = spline(accel_vals(delta_index, :), yaw_moment_vals(delta_index, :), accel_xx);
-        plot(accel_xx, yaw_moment_yy, 'red');
+        fnplt(cscvn([accel_vals(delta_index, :); yaw_moment_vals(delta_index, :)]), 'red');
     end
+    % Draw the constant-delta splines (blue)
     for beta_index = 1:n_beta
-        accel_xx = linspace(accel_vals(1, beta_index), accel_vals(end, beta_index), 1000);
-        yaw_moment_yy = spline(accel_vals(:, beta_index), yaw_moment_vals(:, beta_index), accel_xx);
-        plot(accel_xx, yaw_moment_yy, 'blue');
+        fnplt(cscvn([accel_vals(:, beta_index)'; yaw_moment_vals(:, beta_index)']), 'blue');
     end
 else
     for delta_index = 1:n_delta
@@ -111,13 +91,20 @@ line([0 0], ylim)
 line(xlim, [0 0])
 
 % Add labels
+% for i = 1:n_delta
+%    txt = ['Delta = ', num2str(delta_vals(i))];
+%    text(accel_vals(i, 1), yaw_moment_vals(i, 1), txt);
+% end
+% for i = 1:n_beta
+%    txt = ['Beta = ', num2str(beta_vals(i))];
+%    text(accel_vals(1, i), yaw_moment_vals(1, i), txt);
+% end
+
 for i = 1:n_delta
-    txt = ['Delta = ', num2str(delta_vals(i))];
-    text(accel_vals(i, 1), yaw_moment_vals(i, 1), txt);
-end
-for i = 1:n_beta
-    txt = ['Beta = ', num2str(beta_vals(i))];
-    text(accel_vals(1, i), yaw_moment_vals(1, i), txt);
+    for j = 1:n_beta
+        txt = "Delta = " + delta_vals(i) + ", Beta = " + beta_vals(j);
+        %text(accel_vals(i, j), yaw_moment_vals(i, j), txt);
+    end
 end
 
 % Output the control and stability values
